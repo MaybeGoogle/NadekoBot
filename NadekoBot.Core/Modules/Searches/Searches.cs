@@ -327,7 +327,7 @@ namespace NadekoBot.Modules.Searches
 
             terms = WebUtility.UrlEncode(terms).Replace(' ', '+');
 
-            var fullQueryLink = $"https://www.google.com/search?q={ terms }&hl=en";
+            var fullQueryLink = $"https://www.google.com/search?q={ terms }&hl=en&gws_rd=cr,ssl";
             var config = Configuration.Default.WithDefaultLoader();
             var document = await BrowsingContext.New(config).OpenAsync(fullQueryLink);
 
