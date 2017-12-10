@@ -18,7 +18,7 @@ You can support the project on patreon: <https://patreon.com/nadekobot> or paypa
 ### Administration  
 Commands and aliases | Description | Usage
 ----------------|--------------|-------
-`.delmsgoncmd` | Toggles the automatic deletion of the user's successful command message to prevent chat flood. **Requires Administrator server permission.** | `.delmsgoncmd`
+`.delmsgoncmd` | Toggles the automatic deletion of the user's successful command message to prevent chat flood. You can use it either as a server toggle, channel whitelist, or channel blacklist, as channel option has 3 settings: Enable (always do it on this channel), Disable (never do it on this channel), and Inherit (respect server setting). Use `list` parameter to see the current states. **Requires Administrator server permission.** | `.delmsgoncmd` or `.delmsgoncmd channel enable` or `.delmsgoncmd channel inherit` or `.delmsgoncmd list`
 `.setrole` `.sr` | Sets a role for a given user. **Requires ManageRoles server permission.** | `.sr @User Guest`
 `.removerole` `.rr` | Removes a role from a given user. **Requires ManageRoles server permission.** | `.rr @User Admin`
 `.renamerole` `.renr` | Renames a role. The role you are renaming must be lower than bot's highest role. **Requires ManageRoles server permission.** | `.renr "First role" SecondRole`
@@ -76,6 +76,7 @@ Commands and aliases | Description | Usage
 `.rsar` | Removes a specified role from the list of self-assignable roles. **Requires ManageRoles server permission.** | `.rsar`
 `.lsar` | Lists all self-assignable roles.  | `.lsar`
 `.togglexclsar` `.tesar` | Toggles whether the self-assigned roles are exclusive. While enabled, users can only have one self-assignable role per group. **Requires ManageRoles server permission.** | `.tesar`
+`.rolelevelreq` `.rlr` | Set a level requirement on a self-assignable role. **Requires ManageRoles server permission.** | `.rlr 5 SomeRole`
 `.iam` | Adds a role to you that you choose. Role must be on a list of self-assignable roles.  | `.iam Gamer`
 `.iamnot` `.iamn` | Removes a specified role from you. Role must be on a list of self-assignable roles.  | `.iamn Gamer`
 `.scadd` | Adds a command to the list of commands which will be executed automatically in the current channel, in the order they were added in, by the bot when it startups up. **Bot owner only** | `.scadd .stats`
@@ -94,10 +95,11 @@ Commands and aliases | Description | Usage
 `.setnick` | Changes the nickname of the bot on this server. You can also target other users to change their nickname. **Requires ManageNicknames server permission.** | `.setnick BotNickname` or `.setnick @SomeUser New Nickname`
 `.setstatus` | Sets the bot's status. (Online/Idle/Dnd/Invisible) **Bot owner only** | `.setstatus Idle`
 `.setavatar` `.setav` | Sets a new avatar image for the NadekoBot. Argument is a direct link to an image. **Bot owner only** | `.setav http://i.imgur.com/xTG3a1I.jpg`
-`.setgame` | Sets the bots game. **Bot owner only** | `.setgame with snakes`
+`.setgame` | Sets the bots game status to either Playing, ListeningTo, or Watching. **Bot owner only** | `.setgame Playing with snakes.` or `.setgame Watching anime.` or `.setgame ListeningTo music.`
 `.setstream` | Sets the bots stream. First argument is the twitch link, second argument is stream name. **Bot owner only** | `.setstream TWITCHLINK Hello`
 `.send` | Sends a message to someone on a different server through the bot.  Separate server and channel/user ids with `|` and prefix the channel id with `c:` and the user id with `u:`. **Bot owner only** | `.send serverid|c:channelid message` or `.send serverid|u:userid message`
 `.reloadimages` | Reloads images bot is using. Safe to use even when bot is being used heavily. **Bot owner only** | `.reloadimages`
+`.reloadbotconfig` | reloadbotconfig **Bot owner only** | `reloadbotconfig`
 `.greetdel` `.grdel` | Sets the time it takes (in seconds) for greet messages to be auto-deleted. Set it to 0 to disable automatic deletion. **Requires ManageServer server permission.** | `.greetdel 0` or `.greetdel 30`
 `.greet` | Toggles anouncements on the current channel when someone joins the server. **Requires ManageServer server permission.** | `.greet`
 `.greetmsg` | Sets a new join announcement message which will be shown in the server's channel. Type `%user%` if you want to mention the new member. Using it with no message will show the current greet message. You can use embed json from <http://nadekobot.me/embedbuilder/> instead of a regular text, if you want the message to be embedded. **Requires ManageServer server permission.** | `.greetmsg Welcome, %user%.`
@@ -118,6 +120,7 @@ Commands and aliases | Description | Usage
 `.unban` | Unbans a user with the provided user#discrim or id. **Requires BanMembers server permission.** | `.unban kwoth#1234` or `.unban 123123123`
 `.softban` `.sb` | Bans and then unbans a user by ID or name with an optional message. **Requires KickMembers server permission.** **Requires ManageMessages server permission.** | `.sb "@some Guy" Your behaviour is toxic.`
 `.kick` `.k` | Kicks a mentioned user. **Requires KickMembers server permission.** | `.k "@some Guy" Your behaviour is toxic.`
+`.masskill` | Specify a new-line separated list of `userid reason`. You can use Username#discrim instead of UserId. Specified users will be banned from the current server, blacklisted from the bot, and have all of their flowers taken away. **Requires BanMembers server permission.** **Bot owner only** | `.masskill BadPerson#1234 Toxic person`
 `.vcrole` | Sets or resets a role which will be given to users who join the voice channel you're in when you run this command. Provide no role name to disable. You must be in a voice channel to run this command. **Requires ManageRoles server permission.** **Requires ManageChannels server permission.** | `.vcrole SomeRole` or `.vcrole`
 `.vcrolelist` | Shows a list of currently set voice channel roles.  | `.vcrolelist`
 `.voice+text` `.v+t` | Creates a text channel for each voice channel only users in that voice channel can see. If you are server owner, keep in mind you will see them all the time regardless. **Requires ManageRoles server permission.** **Requires ManageChannels server permission.** | `.v+t`
@@ -145,11 +148,16 @@ Commands and aliases | Description | Usage
 ### Gambling  
 Commands and aliases | Description | Usage
 ----------------|--------------|-------
-`.raffle` | Prints a name and ID of a random user from the online list from the (optional) role.  | `.raffle` or `.raffle RoleName`
+`.timely` | Use to claim your 'timely' currency. Bot owner has to specify the amount and the period on how often you can claim your currency.  | `.timely`
+`.timelyreset` | Resets all user timeouts on `.timely` command. **Bot owner only** | `.timelyreset`
+`.timelyset` | Sets the 'timely' currency allowance amount for users. Second argument is period in hours, default is 24 hours. **Bot owner only** | `.timelyset 100` or `.timelyset 50 12`
+`.raffle` | Prints a name and ID of a random online user from the server, or from the online user in the specified role.  | `.raffle` or `.raffle RoleName`
+`.raffleany` | Prints a name and ID of a random user from the server, or from the specified role.  | `.raffleany` or `.raffleany  RoleName`
 `.$` `.currency` `.$$` `.$$$` `.cash` `.cur` | Check how much currency a person has. (Defaults to yourself)  | `.$` or `.$ @SomeGuy`
 `.give` | Give someone a certain amount of currency.  | `.give 1 @SomeGuy`
 `.award` | Awards someone a certain amount of currency.  You can also specify a role name to award currency to all users in a role. **Bot owner only** | `.award 100 @person` or `.award 5 Role Of Gamblers`
 `.take` | Takes a certain amount of currency from someone. **Bot owner only** | `.take 1 @SomeGuy`
+`.rollduel` | Challenge someone to a roll duel by specifying the amount and the user you wish to challenge as the parameters. To accept the challenge, just specify the name of the user who challenged you, without the amount.  | `.rollduel 50 @SomeGuy` or `.rollduel @Challenger`
 `.betroll` `.br` | Bets a certain amount of currency and rolls a dice. Rolling over 66 yields x2 of your currency, over 90 - x4 and 100 x10.  | `.br 5`
 `.leaderboard` `.lb` | Displays the bot's currency leaderboard.  | `.lb`
 `.race` | Starts a new animal race.  | `.race`
@@ -172,7 +180,9 @@ Commands and aliases | Description | Usage
 `.slotstats` | Shows the total stats of the slot command for this bot's session. **Bot owner only** | `.slotstats`
 `.slottest` | Tests to see how much slots payout for X number of plays. **Bot owner only** | `.slottest 1000`
 `.slot` | Play Nadeko slots. Max bet is 9999. 1.5 second cooldown per user.  | `.slot 5`
+`.waifureset` | Resets your waifu stats, except current waifus.  | `.waifureset`
 `.claimwaifu` `.claim` | Claim a waifu for yourself by spending currency.  You must spend at least 10% more than her current value unless she set `.affinity` towards you.  | `.claim 50 @Himesama`
+`.waifutransfer` | Transfer the ownership of one of your waifus to another user. You must pay 10% of your waifu's value.  | `.waifutransfer @ExWaifu @NewOwner`
 `.divorce` | Releases your claim on a specific waifu. You will get some of the money you've spent back unless that waifu has an affinity towards you. 6 hours cooldown.  | `.divorce @CheatingSloot`
 `.affinity` | Sets your affinity towards someone you want to be claimed by. Setting affinity will reduce their `.claim` on you by 20%. You can leave second argument empty to clear your affinity. 30 minutes cooldown.  | `.affinity @MyHusband` or `.affinity`
 `.waifus` `.waifulb` | Shows top 9 waifus. You can specify another page to show other waifus.  | `.waifus` or `.waifulb 3`
@@ -191,7 +201,7 @@ Commands and aliases | Description | Usage
 `.rategirl` | Use the universal hot-crazy wife zone matrix to determine the girl's worth. It is everything young men need to know about women. At any moment in time, any woman you have previously located on this chart can vanish from that location and appear anywhere else on the chart.  | `.rategirl @SomeGurl`
 `.linux` | Prints a customizable Linux interjection  | `.linux Spyware Windows`
 `.leet` | Converts a text to leetspeak with 6 (1-6) severity levels  | `.leet 3 Hello`
-`.acrophobia` `.acro` | Starts an Acrophobia game. Second argument is optional round length in seconds. (default is 60)  | `.acro` or `.acro 30`
+`.acrophobia` `.acro` | Starts an Acrophobia game.  | `.acro` or `.acro -s 30`
 `.cleverbot` | Toggles cleverbot session. When enabled, the bot will reply to messages starting with bot mention in the server. Custom reactions starting with %mention% won't work if cleverbot is enabled. **Requires ManageMessages server permission.** | `.cleverbot`
 `.connect4` `.con4` | Creates or joins an existing connect4 game. 2 players are required for the game. Objective of the game is to get 4 of your pieces next to each other in a vertical, horizontal or diagonal line.  | `.connect4`
 `.hangmanlist` | Shows a list of hangman term types.  | `.hangmanlist`
@@ -209,8 +219,8 @@ Commands and aliases | Description | Usage
 `.typeadd` | Adds a new article to the typing contest. **Bot owner only** | `.typeadd wordswords`
 `.typelist` | Lists added typing articles with their IDs. 15 per page.  | `.typelist` or `.typelist 3`
 `.typedel` | Deletes a typing article given the ID. **Bot owner only** | `.typedel 3`
-`.tictactoe` `.ttt` | Starts a game of tic tac toe. Another user must run the command in the same channel in order to accept the challenge. Use numbers 1-9 to play. 15 seconds per move.  | `.ttt`
-`.trivia` `.t` | Starts a game of trivia. You can add `nohint` to prevent hints. First player to get to 10 points wins by default. You can specify a different number. 30 seconds per question.  | `.t` or `.t 5 nohint`
+`.tictactoe` `.ttt` | Starts a game of tic tac toe. Another user must run the command in the same channel in order to accept the challenge. Use numbers 1-9 to play.  | `.ttt`
+`.trivia` `.t` | Starts a game of trivia. You can add `nohint` to prevent hints. First player to get to 10 points wins by default. You can specify a different number. 30 seconds per question.  | `.t` or `.t --timeout 5 -p -w 3 -q 10`
 `.tl` | Shows a current trivia leaderboard.  | `.tl`
 `.tq` | Quits current trivia after current question.  | `.tq`
 
@@ -238,6 +248,7 @@ Commands and aliases | Description | Usage
 `.listqueue` `.lq` | Lists 10 currently queued songs per page. Default page is 1.  | `.lq` or `.lq 2`
 `.next` `.n` | Goes to the next song in the queue. You have to be in the same voice channel as the bot. You can skip multiple songs, but in that case songs will not be requeued if .rcs or .rpl is enabled.  | `.n` or `.n 5`
 `.stop` `.s` | Stops the music and preserves the current song index. Stays in the channel.  | `.s`
+`.autodisconnect` `.autodc` | Toggles whether the bot should disconnect from the voice channel once it's done playing all of the songs.  | `.autodc`
 `.destroy` `.d` | Completely stops the music and unbinds the bot from the channel. (may cause weird behaviour)  | `.d`
 `.pause` `.p` | Pauses or Unpauses the song.  | `.p`
 `.volume` `.vol` | Sets the music playback volume (0-100%)  | `.vol 50`
@@ -265,6 +276,7 @@ Commands and aliases | Description | Usage
 `.rpeatplaylst` `.rpl` | Toggles repeat of all songs in the queue (every song that finishes is added to the end of the queue).  | `.rpl`
 `.autoplay` `.ap` | Toggles autoplay - When the song is finished, automatically queue a related Youtube song. (Works only for Youtube songs and when queue is empty)  | `.ap`
 `.setmusicchannel` `.smch` | Sets the current channel as the default music output channel. This will output playing, finished, paused and removed songs to that channel instead of the channel where the first song was queued in. **Requires ManageMessages server permission.** | `.smch`
+`.unsetmusicchannel` `.usmch` | Bot will output playing, finished, paused and removed songs to the channel where the first song was queued in. **Requires ManageMessages server permission.** | `.smch`
 
 ###### [Back to ToC](#table-of-contents)
 
@@ -343,6 +355,7 @@ Commands and aliases | Description | Usage
 Commands and aliases | Description | Usage
 ----------------|--------------|-------
 `.lolban` | Shows top banned champions ordered by ban rate.  | `.lolban`
+`.crypto` `.c` | Shows basic stats about a cryptocurrency from coinmarketcap.com. You can use either a name or an abbreviation of the currency.  | `.c btc` or `.c bitcoin`
 `.rip` | rip  | `rip`
 `.say` | Bot will send the message you typed in this channel. Supports embeds. **Requires ManageMessages server permission.** | `.say hi`
 `.weather` `.we` | Shows weather data for a specified city. You can also specify a country after a comma.  | `.we Moscow, RU`
@@ -371,6 +384,7 @@ Commands and aliases | Description | Usage
 `.videocall` | Creates a private <http://www.appear.in> video call link for you and other mentioned people. The link is sent to mentioned people via a private message.  | `.videocall "@the First" "@Xyz"`
 `.avatar` `.av` | Shows a mentioned person's avatar.  | `.av @SomeGuy`
 `.wikia` | Gives you back a wikia link  | `.wikia mtg Vigilance` or `.wikia mlp Dashy`
+`.novel` | Searches for a novel on `http://novelupdates.com/`. You have to provide an exact name.  | `.novel the nine cauldrons`
 `.mal` | Shows basic info from a MyAnimeList profile.  | `.mal straysocks`
 `.anime` `.ani` `.aq` | Queries anilist for an anime and shows the first result.  | `.ani aquarion evol`
 `.manga` `.mang` `.mq` | Queries anilist for a manga and shows the first result.  | `.mq Shingeki no kyojin`
@@ -392,9 +406,10 @@ Commands and aliases | Description | Usage
 `.place` | Shows a placeholder image of a given tag. Use `.placelist` to see all available tags. You can specify the width and height of the image as the last two optional arguments.  | `.place Cage` or `.place steven 500 400`
 `.pokemon` `.poke` | Searches for a pokemon.  | `.poke Sylveon`
 `.pokemonability` `.pokeab` | Searches for a pokemon ability.  | `.pokeab overgrow`
-`.smashcast` `.hb` | Notifies this channel when a certain user starts streaming. **Requires ManageMessages server permission.** | `.smashcast SomeStreamer`
-`.twitch` `.tw` | Notifies this channel when a certain user starts streaming. **Requires ManageMessages server permission.** | `.twitch SomeStreamer`
-`.mixer` `.bm` | Notifies this channel when a certain user starts streaming. **Requires ManageMessages server permission.** | `.mixer SomeStreamer`
+`.smashcast` `.hb` | Notifies this channel when the specified user starts streaming. **Requires ManageMessages server permission.** | `.smashcast SomeStreamer`
+`.twitch` `.tw` | Notifies this channel when the specified user starts streaming. **Requires ManageMessages server permission.** | `.twitch SomeStreamer`
+`.picarto` `.pa` | Notifies this channel when the specified user starts streaming. **Requires ManageMessages server permission.** | `.picarto SomeStreamer`
+`.mixer` `.bm` | Notifies this channel when the specified user starts streaming. **Requires ManageMessages server permission.** | `.mixer SomeStreamer`
 `.liststreams` `.ls` | Lists all streams you are following on this server.  | `.ls`
 `.removestream` `.rms` | Removes notifications of a certain streamer from a certain platform on this channel. **Requires ManageMessages server permission.** | `.rms Twitch SomeGuy` or `.rms mixer SomeOtherGuy`
 `.checkstream` `.cs` | Checks if a user is online on a certain streaming platform.  | `.cs twitch MyFavStreamer`
@@ -412,11 +427,11 @@ Commands and aliases | Description | Usage
 `.togethertube` `.totube` | Creates a new room on <https://togethertube.com> and shows the link in the chat.  | `.totube`
 `.whosplaying` `.whpl` | Shows a list of users who are playing the specified game.  | `.whpl Overwatch`
 `.inrole` | Lists every person from the specified role on this server. You can use role ID, role name.  | `.inrole Some Role`
-`.checkmyperms` | Checks your user-specific permissions on this channel.  | `.checkmyperms`
+`.checkperms` | Checks yours or bot's user-specific permissions on this channel.  | `.checkperms me` or `.checkperms bot`
 `.userid` `.uid` | Shows user ID.  | `.uid` or `.uid @SomeGuy`
 `.channelid` `.cid` | Shows current channel ID.  | `.cid`
 `.serverid` `.sid` | Shows current server ID.  | `.sid`
-`.roles` | List roles on this server or a roles of a specific user if specified. Paginated, 20 roles per page.  | `.roles 2` or `.roles @Someone`
+`.roles` | List roles on this server or roles of a user if specified. Paginated, 20 roles per page.  | `.roles 2` or `.roles @Someone`
 `.channeltopic` `.ct` | Sends current channel's topic as a message.  | `.ct`
 `.createinvite` `.crinv` | Creates a new invite which has infinite max uses and never expires. **Requires CreateInstantInvite channel permission.** | `.crinv`
 `.stats` | Shows some basic stats for Nadeko.  | `.stats`
@@ -435,7 +450,7 @@ Commands and aliases | Description | Usage
 `.activity` | Checks for spammers. **Bot owner only** | `.activity`
 `.parewrel` | Forces the update of the list of patrons who are eligible for the reward.  | `.parewrel`
 `.clparew` | Claim patreon rewards. If you're subscribed to bot owner's patreon you can use this command to claim your rewards - assuming bot owner did setup has their patreon key.  | `.clparew`
-`.listquotes` `.liqu` | Lists all quotes on the server ordered alphabetically. 15 Per page.  | `.liqu` or `.liqu 3`
+`.listquotes` `.liqu` | Lists all quotes on the server ordered alphabetically or by ID. 15 Per page.  | `.liqu 3` or `.liqu 3 id`
 `...` | Shows a random quote with a specified name.  | `... abc`
 `.qsearch` | Shows a random quote for a keyword that contains any text specified in the search.  | `.qsearch keyword text`
 `.quoteid` `.qid` | Displays the quote with the specified ID number. Quote ID numbers can be found by typing `.liqu [num]` where `[num]` is a number of a page which contains 15 quotes.  | `.qid 123456`
@@ -462,14 +477,16 @@ Commands and aliases | Description | Usage
 Commands and aliases | Description | Usage
 ----------------|--------------|-------
 `.experience` `.xp` | Shows your xp stats. Specify the user to show that user's stats instead.  | `.xp`
-`.xprolerewards` `.xprrs` | Shows currently set role rewards.  | `.xprrs`
+`.xplvluprewards` `.xprews` `.xpcrs` `.xprrs` `.xprolerewards` `.xpcurrewards` | Shows currently set level up rewards.  | `.xprews`
 `.xprolereward` `.xprr` | Sets a role reward on a specified level. Provide no role name in order to remove the role reward. **Requires ManageRoles server permission.** | `.xprr 3 Social`
+`.xpcurreward` `.xpcr` | Sets a currency reward on a specified level. Provide no amount in order to remove the reward. **Bot owner only** | `.xpcr 3 50`
 `.xpnotify` `.xpn` | Sets how the bot should notify you when you get a `server` or `global` level. You can set `dm` (for the bot to send a direct message), `channel` (to get notified in the channel you sent the last message in) or `none` to disable.  | `.xpn global dm` or `.xpn server channel`
 `.xpexclude` `.xpex` | Exclude a channel, role or current server from the xp system. **Requires Administrator server permission.** | `.xpex Role Excluded-Role` or `.xpex Server`
 `.xpexclusionlist` `.xpexl` | Shows the roles and channels excluded from the XP system on this server, as well as whether the whole server is excluded.  | `.xpexl`
 `.xpleaderboard` `.xplb` | Shows current server's xp leaderboard.  | `.xplb`
 `.xpgleaderboard` `.xpglb` | Shows the global xp leaderboard.  | `.xpglb`
 `.xpadd` | Adds xp to a user on the server. This does not affect their global ranking. You can use negative values. **Requires Administrator server permission.** | `.xpadd 100 @b1nzy`
+`.clubtransfer` | Transfers the ownership of the club to another member of the club.  | `.clubtransfer @b1nzy`
 `.clubadmin` | Assigns (or unassigns) staff role to the member of the club. Admins can ban, kick and accept applications.  | `.clubadmin`
 `.clubcreate` | Creates a club. You must be at least level 5 and not be in the club already.  | `.clubcreate b1nzy's friends`
 `.clubicon` | Sets the club icon.  | `.clubicon https://i.imgur.com/htfDMfU.png`

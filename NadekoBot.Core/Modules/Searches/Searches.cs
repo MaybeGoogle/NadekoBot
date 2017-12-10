@@ -22,6 +22,7 @@ using NadekoBot.Modules.Searches.Common;
 using NadekoBot.Modules.Searches.Services;
 using NadekoBot.Common.Replacements;
 using Discord.WebSocket;
+using NadekoBot.Core.Modules.Searches.Common;
 
 namespace NadekoBot.Modules.Searches
 {
@@ -34,6 +35,66 @@ namespace NadekoBot.Modules.Searches
         {
             _creds = creds;
             _google = google;
+        }
+
+        [NadekoCommand, Usage, Description, Aliases]
+        [RequireContext(ContextType.Guild)]
+        public async Task Crypto(string name)
+        {
+            name = name?.ToLowerInvariant();
+
+            if (string.IsNullOrWhiteSpace(name))
+                return;
+            var cryptos = (await _service.CryptoData().ConfigureAwait(false));
+            var crypto = cryptos
+                ?.FirstOrDefault(x => x.Id.ToLowerInvariant() == name || x.Name.ToLowerInvariant() == name
+                    || x.Symbol.ToLowerInvariant() == name);
+
+            (CryptoData Elem, int Distance)? nearest = null;
+            if (crypto == null)
+            {
+                nearest = cryptos.Select(x => (x, Distance: x.Name.ToLowerInvariant().LevenshteinDistance(name)))
+                    .OrderBy(x => x.Distance)
+                    .Where(x => x.Distance <= 2)
+                    .FirstOrDefault();
+
+                crypto = nearest?.Elem;
+            }
+
+            if (crypto == null)
+            {
+                await ReplyErrorLocalized("crypto_not_found").ConfigureAwait(false);
+                return;
+            }
+
+            if (nearest != null)
+            {
+                //wrap this into some class, ther'es the same code in execsql too
+                var msg = await Context.Channel.EmbedAsync(new EmbedBuilder()
+                        .WithOkColor()
+                        .WithTitle(GetText("crypto_not_found"))
+                        .WithDescription(GetText("did_you_mean", Format.Bold($"{crypto.Name} ({crypto.Symbol})")))
+                        .WithFooter("Y/n")).ConfigureAwait(false);
+
+                var input = await GetUserInputAsync(Context.User.Id, Context.Channel.Id);
+                input = input?.ToLowerInvariant().ToString();
+
+                if (input != "yes" && input != "y")
+                {
+                    var __ = msg.DeleteAsync();
+                    return;
+                }
+                var _ = msg.DeleteAsync();
+            }
+
+            await Context.Channel.EmbedAsync(new EmbedBuilder()
+                .WithOkColor()
+                .WithTitle($"{crypto.Name} ({crypto.Symbol})")
+                .WithThumbnailUrl($"https://files.coinmarketcap.com/static/img/coins/32x32/{crypto.Id}.png")
+                .AddField(GetText("market_cap"), $"${crypto.Market_Cap_Usd:n0}", true)
+                .AddField(GetText("price"), $"${crypto.Price_Usd}", true)
+                .AddField(GetText("volume_24h"), $"${crypto._24h_Volume_Usd:n0}", true)
+                .AddField(GetText("change_7d_24h"), $"{crypto.Percent_Change_7d}% / {crypto.Percent_Change_24h}%", true));
         }
 
         //for anonymasen :^)
@@ -92,25 +153,34 @@ namespace NadekoBot.Modules.Searches
             if (string.IsNullOrWhiteSpace(query))
                 return;
 
+            var embed = new EmbedBuilder();
             string response;
-            response = await _service.Http.GetStringAsync($"http://api.openweathermap.org/data/2.5/weather?q={query}&appid=42cd627dd60debf25a5739e50a217d74&units=metric").ConfigureAwait(false);
+            try
+            {
+                response = await _service.Http.GetStringAsync($"http://api.openweathermap.org/data/2.5/weather?q={query}&appid=42cd627dd60debf25a5739e50a217d74&units=metric").ConfigureAwait(false);
 
-            var data = JsonConvert.DeserializeObject<WeatherData>(response);
+                var data = JsonConvert.DeserializeObject<WeatherData>(response);
 
-            Func<double, double> f = StandardConversions.CelsiusToFahrenheit;
+                Func<double, double> f = StandardConversions.CelsiusToFahrenheit;
 
-            var embed = new EmbedBuilder()
-                .AddField(fb => fb.WithName("🌍 " + Format.Bold(GetText("location"))).WithValue($"[{data.Name + ", " + data.Sys.Country}](https://openweathermap.org/city/{data.Id})").WithIsInline(true))
-                .AddField(fb => fb.WithName("📏 " + Format.Bold(GetText("latlong"))).WithValue($"{data.Coord.Lat}, {data.Coord.Lon}").WithIsInline(true))
-                .AddField(fb => fb.WithName("☁ " + Format.Bold(GetText("condition"))).WithValue(string.Join(", ", data.Weather.Select(w => w.Main))).WithIsInline(true))
-                .AddField(fb => fb.WithName("😓 " + Format.Bold(GetText("humidity"))).WithValue($"{data.Main.Humidity}%").WithIsInline(true))
-                .AddField(fb => fb.WithName("💨 " + Format.Bold(GetText("wind_speed"))).WithValue(data.Wind.Speed + " m/s").WithIsInline(true))
-                .AddField(fb => fb.WithName("🌡 " + Format.Bold(GetText("temperature"))).WithValue($"{data.Main.Temp:F1}°C / {f(data.Main.Temp):F1}°F").WithIsInline(true))
-                .AddField(fb => fb.WithName("🔆 " + Format.Bold(GetText("min_max"))).WithValue($"{data.Main.TempMin:F1}°C - {data.Main.TempMax:F1}°C\n{f(data.Main.TempMin):F1}°F - {f(data.Main.TempMax):F1}°F").WithIsInline(true))
-                .AddField(fb => fb.WithName("🌄 " + Format.Bold(GetText("sunrise"))).WithValue($"{data.Sys.Sunrise.ToUnixTimestamp():HH:mm} UTC").WithIsInline(true))
-                .AddField(fb => fb.WithName("🌇 " + Format.Bold(GetText("sunset"))).WithValue($"{data.Sys.Sunset.ToUnixTimestamp():HH:mm} UTC").WithIsInline(true))
-                .WithOkColor()
-                .WithFooter(efb => efb.WithText("Powered by openweathermap.org").WithIconUrl($"http://openweathermap.org/img/w/{data.Weather[0].Icon}.png"));
+                embed
+                    .AddField(fb => fb.WithName("🌍 " + Format.Bold(GetText("location"))).WithValue($"[{data.Name + ", " + data.Sys.Country}](https://openweathermap.org/city/{data.Id})").WithIsInline(true))
+                    .AddField(fb => fb.WithName("📏 " + Format.Bold(GetText("latlong"))).WithValue($"{data.Coord.Lat}, {data.Coord.Lon}").WithIsInline(true))
+                    .AddField(fb => fb.WithName("☁ " + Format.Bold(GetText("condition"))).WithValue(string.Join(", ", data.Weather.Select(w => w.Main))).WithIsInline(true))
+                    .AddField(fb => fb.WithName("😓 " + Format.Bold(GetText("humidity"))).WithValue($"{data.Main.Humidity}%").WithIsInline(true))
+                    .AddField(fb => fb.WithName("💨 " + Format.Bold(GetText("wind_speed"))).WithValue(data.Wind.Speed + " m/s").WithIsInline(true))
+                    .AddField(fb => fb.WithName("🌡 " + Format.Bold(GetText("temperature"))).WithValue($"{data.Main.Temp:F1}°C / {f(data.Main.Temp):F1}°F").WithIsInline(true))
+                    .AddField(fb => fb.WithName("🔆 " + Format.Bold(GetText("min_max"))).WithValue($"{data.Main.TempMin:F1}°C - {data.Main.TempMax:F1}°C\n{f(data.Main.TempMin):F1}°F - {f(data.Main.TempMax):F1}°F").WithIsInline(true))
+                    .AddField(fb => fb.WithName("🌄 " + Format.Bold(GetText("sunrise"))).WithValue($"{data.Sys.Sunrise.ToUnixTimestamp():HH:mm} UTC").WithIsInline(true))
+                    .AddField(fb => fb.WithName("🌇 " + Format.Bold(GetText("sunset"))).WithValue($"{data.Sys.Sunset.ToUnixTimestamp():HH:mm} UTC").WithIsInline(true))
+                    .WithOkColor()
+                    .WithFooter(efb => efb.WithText("Powered by openweathermap.org").WithIconUrl($"http://openweathermap.org/img/w/{data.Weather[0].Icon}.png"));
+            }
+            catch
+            {
+                embed.WithDescription(GetText("city_not_found"))
+                    .WithErrorColor();
+            }
             await Context.Channel.EmbedAsync(embed).ConfigureAwait(false);
         }
 
@@ -719,7 +789,8 @@ namespace NadekoBot.Modules.Searches
             await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
                 .AddField(efb => efb.WithName("Username").WithValue(usr.ToString()).WithIsInline(false))
                 .AddField(efb => efb.WithName("Avatar Url").WithValue(shortenedAvatarUrl).WithIsInline(false))
-                .WithThumbnailUrl(avatarUrl), Context.User.Mention).ConfigureAwait(false);
+                .WithThumbnailUrl(avatarUrl)
+                .WithImageUrl(avatarUrl), Context.User.Mention).ConfigureAwait(false);
         }
 
         [NadekoCommand, Usage, Description, Aliases]

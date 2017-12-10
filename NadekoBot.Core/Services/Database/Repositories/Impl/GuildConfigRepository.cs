@@ -51,6 +51,8 @@ namespace NadekoBot.Core.Services.Database.Repositories.Impl
                 .Include(gc => gc.NsfwBlacklistedTags)
                 .Include(gc => gc.XpSettings)
                     .ThenInclude(x => x.ExclusionList)
+                .Include(gc => gc.MusicSettings)
+                .Include(gc => gc.DelMsgOnCmdChannels)
                 .ToList();
 
         /// <summary>
@@ -199,6 +201,8 @@ namespace NadekoBot.Core.Services.Database.Repositories.Impl
             var gc = For(guildId,
                 set => set.Include(x => x.XpSettings)
                           .ThenInclude(x => x.RoleRewards)
+                          .Include(x => x.XpSettings)
+                          .ThenInclude(x => x.CurrencyRewards)
                           .Include(x => x.XpSettings)
                           .ThenInclude(x => x.ExclusionList));
 
