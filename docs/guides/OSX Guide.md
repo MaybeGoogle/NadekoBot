@@ -49,13 +49,14 @@ Once Installation is completed you should see the options again.
 
 Find and edit the `credentials.json` according to this [guide](http://nadekobot.readthedocs.io/en/latest/JSON%20Explanations/#setting-up-credentialsjson-file).
 
-Choose `6` (exit) if you would like to pause. Otherwise, continue. 
+Choose `8` (exit) if you would like to pause. Otherwise, continue. 
 
 #### Running NadekoBot
 
-If you aren't seeing the six options in terminal, run `cd ~ && wget -N https://github.com/Kwoth/NadekoBot-BashScript/raw/1.9/linuxAIO.sh && bash linuxAIO.sh`.
+If you aren't seeing the eight options in terminal, run `cd ~ && wget -N https://github.com/Kwoth/NadekoBot-BashScript/raw/1.9/linuxAIO.sh && bash linuxAIO.sh`.
 
-**The options:**
+**The options:**  
+NadekoBot can now be run with two different methods. The first method is to run with [pm2](http://pm2.keymetrics.io/), which manages the bot and persists through startups. The second method is to run the bot in a [tmux](https://github.com/tmux/tmux) session. You should only use the second method if you are more comfortable with tmux or do not want to 
 `2. Run Nadeko (Normally)`
 
 If you shut down the bot with `.die`, it will stay offline until you manually run it again.
